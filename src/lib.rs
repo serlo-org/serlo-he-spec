@@ -1,15 +1,6 @@
-use serde::de::{Deserialize, Deserializer, MapAccess, Unexpected, Visitor};
-use serde::ser::SerializeStruct;
-use serde::{de, ser};
-use serde_derive::{Deserialize, Serialize};
-use serlo_he_spec_derive::plugin_spec;
-use serlo_he_spec_meta;
-use std::fmt;
+mod plugins;
 
-const _REFRESHER: &'static str = include_str!("test_spec.yml");
-plugin_spec!("src/test_spec.yml");
-
-type HEContent = Vec<Plugins>;
+pub use crate::plugins::*;
 
 #[cfg(test)]
 mod test {
