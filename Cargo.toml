@@ -1,0 +1,12 @@
+[package]
+name = "serlo-he-spec"
+version = "0.1.0"
+authors = ["Valentin Roland <valentin@vroland.de>"]
+edition = "2018"
+
+[dependencies]
+serlo_he_spec_derive = { path = "derive" }
+serlo_he_spec_meta = { path = "meta" }
+serde_derive = "1.0"
+serde_json = "1.0"
+serde = "1.0"

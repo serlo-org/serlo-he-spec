@@ -1,0 +1,36 @@
+- uuid: 1a9b7691-6116-4341-bc9c-fd938ed135e2
+  identifier: Heading
+  categories: [Structure]
+  description: A simple heading.
+  documentation: |
+      Headings give an article its structure. They make up a hierarchy where
+      more general headings are on top with more specific sub-headings under them.
+     
+      What makes a good heading?
+      --------------------------
+
+      * heading titles should capture the gist of their contents well. 
+      * ...
+  attributes:
+    - identifier: caption
+      multiplicity: Once
+      constraints: []
+      content_type: HEContent
+    - identifier: content
+      multiplicity: Once
+      constraints: []
+      content_type: HEContent
+
+- uuid: b8f56613-e89c-44f3-95b0-f32ec5e5e587
+  identifier: Markdown
+  categories: []
+  description: Formatted text in *simple* markdown.
+  documentation: |
+      Simple unicode text without special markup. 
+      Markdown features like Headings, Tables, etc. are **not** allowed! Instead,
+      use the appropriate plugins.
+  attributes:
+    - identifier: content
+      multiplicity: Once
+      constraints: []
+      content_type: String
