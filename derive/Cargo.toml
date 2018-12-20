@@ -15,5 +15,4 @@ serde_json = "1.0"
 serde_yaml = "0.7"
 quote = "0.6"
 proc-macro2 = "0.4"
-uuid = { version = "0.7", features = ["serde", "v5"] }
 serlo_he_spec_meta = { path = "../meta" }

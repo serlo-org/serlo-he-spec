@@ -1,7 +1,7 @@
 //! Describes the format (types) used in the plugin specification.
 
+use semver::Version;
 use serde_derive::{Deserialize, Serialize};
-use uuid::Uuid;
 
 /// Non-exclusive plugin categories.
 #[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
@@ -31,13 +31,22 @@ pub enum Multiplicity {
     MinOnce,
 }
 
+/// Specifies the plugin identity.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Identifier {
+    /// Plugin resource identifier. Must end with a human-readable plugin identifier,
+    /// preferably in snake_case.
+    pub name: String,
+    /// Version of the plugin (specification) according to Semantic Versioning.
+    #[serde(with = "serde_semver")]
+    pub version: Version,
+}
+
 /// Specification of a plugin.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Plugin {
-    /// Universally unique identifier of the plugin.
-    pub uuid: Uuid,
-    /// Human-readable identifier of the plugin. Must be a valid rust identifier.
-    pub identifier: String,
+    /// Identifying plugin metadata.
+    pub identifier: Identifier,
     /// A list of categories this plugin falls in.
     pub categories: Vec<Category>,
     /// A *short* description of the plugin in CommonMark.
@@ -60,4 +69,48 @@ pub struct Attribute {
     pub constraints: Vec<String>,
     /// Content type (must be the rust identifier of a valid type)
     pub content_type: String,
+}
+
+mod serde_semver {
+    use semver::Version;
+    use serde::{
+        de,
+        de::{Deserializer, Visitor},
+        ser::Serializer,
+    };
+    use std::fmt;
+    use std::str::FromStr;
+
+    pub fn serialize<S>(version: &Version, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&version.to_string())
+    }
+
+    struct SVVisitor;
+
+    impl<'de> Visitor<'de> for SVVisitor {
+        type Value = Version;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("a valid SemVer version number")
+        }
+
+        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            match Version::from_str(value) {
+                Ok(ver) => Ok(ver),
+                Err(e) => Err(E::custom(format!("{}", e))),
+            }
+        }
+    }
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Version, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_str(SVVisitor)
+    }
 }

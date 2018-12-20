@@ -1,5 +1,6 @@
-- uuid: 1a9b7691-6116-4341-bc9c-fd938ed135e2
-  identifier: Heading
+- identifier:
+    name: he.serlo.org/heading
+    version: "0.1.0"
   categories: [Structure]
   description: A simple heading.
   documentation: |
@@ -21,8 +22,9 @@
       constraints: []
       content_type: HEContent
 
-- uuid: b8f56613-e89c-44f3-95b0-f32ec5e5e587
-  identifier: Markdown
+- identifier:
+    name: he.serlo.org/markdown
+    version: "0.1.0"
   categories: []
   description: Formatted text in *simple* markdown.
   documentation: |

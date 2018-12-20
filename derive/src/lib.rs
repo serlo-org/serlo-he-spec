@@ -1,3 +1,5 @@
+#![recursion_limit = "512"]
+
 extern crate proc_macro;
 extern crate proc_macro2;
 
@@ -13,6 +15,11 @@ use syn::{Ident, LitStr};
 
 use serlo_he_spec_meta::{Attribute, Multiplicity, Plugin};
 
+mod serde;
+mod util;
+
+use crate::util::{identifier_from_locator, shadow_identifier};
+
 #[proc_macro]
 pub fn plugin_spec(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let path = PathBuf::from(
@@ -27,6 +34,7 @@ pub fn plugin_spec(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         out.extend(impl_plugin_struct(&plugin))
     }
     out.extend(impl_plugins_enum(&spec));
+    out.extend(crate::serde::impl_serde(&spec));
     out.into()
 }
 
@@ -56,7 +64,7 @@ fn impl_attribute(attribute: &Attribute) -> TokenStream {
 fn impl_plugins_enum(plugins: &Vec<Plugin>) -> TokenStream {
     let identifier_vec = plugins
         .iter()
-        .map(|p| Ident::new(&p.identifier, Span::call_site()))
+        .map(|p| identifier_from_locator(&p.identifier.name))
         .collect::<Vec<Ident>>();
     let identifiers = &identifier_vec;
     let identifiers2 = &identifier_vec;
@@ -64,8 +72,9 @@ fn impl_plugins_enum(plugins: &Vec<Plugin>) -> TokenStream {
         .iter()
         .map(|p| LitStr::new(&p.description, Span::call_site()));
     quote! {
-        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
         /// The specified plugins.
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        #[serde(untagged)]
         pub enum Plugins {
             #(
                 #[doc = #descriptions]
@@ -92,20 +101,29 @@ fn impl_plugins_enum(plugins: &Vec<Plugin>) -> TokenStream {
 }
 
 fn impl_plugin_struct(plugin: &Plugin) -> TokenStream {
-    let ident = Ident::new(&plugin.identifier, Span::call_site());
+    let ident = identifier_from_locator(&plugin.identifier.name);
+    let shadow = shadow_identifier(&plugin.identifier.name);
     let description = LitStr::new(&plugin.description, Span::call_site());
     let documentation = LitStr::new(&plugin.documentation, Span::call_site());
     let serial_spec = LitStr::new(
-        &serde_json::to_string(plugin).expect("could not serialize plugin spec!"),
+        &serde_json::to_string(&plugin).expect("could not serialize plugin spec!"),
         Span::call_site(),
     );
-    let attributes: Vec<TokenStream> = plugin
+    let attribute_vec: Vec<TokenStream> = plugin
         .attributes
         .iter()
         .map(|a| impl_attribute(a))
         .collect();
+    let attributes = &attribute_vec;
+    let attribute_names_vec: Vec<Ident> = plugin
+        .attributes
+        .iter()
+        .map(|a| Ident::new(&a.identifier, Span::call_site()))
+        .collect();
+    let attribute_names = &attribute_names_vec;
+    let attribute_names2 = &attribute_names_vec;
     quote! {
-        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        #[derive(Debug, Clone, PartialEq)]
         #[doc = #description]
         #[doc = "\n\n"]
         #[doc = #documentation]
@@ -113,17 +131,32 @@ fn impl_plugin_struct(plugin: &Plugin) -> TokenStream {
             #(#attributes),*
         }
 
+        /// Shadow type used in serialization and deserialization.
+        /// Represents only the plugin state, without identifier information.
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        struct #shadow {
+            #(#attributes),*
+        }
+
+        impl #shadow {
+            pub fn into_plugin(self) -> #ident {
+                #ident {
+                    #(#attribute_names: self.#attribute_names2),*
+                }
+            }
+
+            pub fn from_plugin(plugin: #ident) -> Self {
+                Self {
+                    #(#attribute_names: plugin.#attribute_names2),*
+                }
+            }
+        }
+
         impl #ident {
             /// Specification of this plugin.
             pub fn specification() -> serlo_he_spec_meta::Plugin {
                 serde_json::from_str(#serial_spec)
                     .expect("could not deserialize spec!")
-            }
-
-            /// Uuid of this plugin.
-            pub fn uuid() -> uuid::Uuid {
-                serde_json::from_str(#uuid)
-                    .expect("could not deserialize uuid!")
             }
         }
     }
