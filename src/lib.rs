@@ -46,4 +46,24 @@ mod test {
             &serde_json::to_string_pretty(&tree).expect("could not serialize!")
         );
     }
+
+    #[test]
+    #[should_panic]
+    fn deserialize_higher_version() {
+        let doc = r#"{
+            "plugin": { "name": "he.serlo.org/markdown", "version": "10000.0.0" },
+            "state": { "content": "Test" }
+        }"#;
+        let _: Markdown = serde_json::from_str(&doc).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn deserialize_breaking_version() {
+        let doc = r#"{
+            "plugin": { "name": "he.serlo.org/markdown", "version": "0.0.0" },
+            "state": { "content": "Test" }
+        }"#;
+        let _: Markdown = serde_json::from_str(&doc).unwrap();
+    }
 }

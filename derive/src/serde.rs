@@ -78,8 +78,17 @@ pub fn impl_serde(plugins: &Vec<Plugin>) -> TokenStream {
                         }
                         let identifier = identifier.ok_or_else(|| de::Error::missing_field("plugin"))?;
                         let state = state.ok_or_else(|| de::Error::missing_field("state"))?.into_plugin();
-                        if (identifier.name != Self::Value::specification().identifier.name) {
+
+                        let spec_ident = Self::Value::specification().identifier;
+                        if (identifier.name != spec_ident.name) {
                             return Err(de::Error::invalid_type(Unexpected::Other("state type for plugin"), &self))
+                        }
+                        if identifier.version > spec_ident.version {
+                            return Err(de::Error::custom("input plugin version is higher than specified version!"));
+                        }
+                        if identifier.version.major < spec_ident.version.major
+                            || (identifier.version.major == 0 && identifier.version.minor < spec_ident.version.minor) {
+                            return Err(de::Error::custom("input plugin version is outdated!"));
                         }
                         Ok(state)
                     }
