@@ -1,0 +1,244 @@
+{
+  "type": "document",
+  "position": {},
+  "content": [
+    {
+      "type": "paragraph",
+      "position": {},
+      "content": [
+        {
+          "type": "text",
+          "position": {},
+          "text": "Reelle Zahlen bilden die Grundlage für dieses Lehrbuch. Schließlich wollen wir uns mit Folgen reeller Zahlen oder mit reellwertigen Funktionen beschäftigen. Bevor wir mit dem Studium der Analysis beginnen, sollten wir uns zunächst fragen: "
+        },
+        {
+          "type": "formatted",
+          "position": {},
+          "markup": "italic",
+          "content": [
+            {
+              "type": "text",
+              "position": {},
+              "text": "Was sind reelle Zahlen?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "position": {},
+      "content": [
+        {
+          "type": "text",
+          "position": {},
+          "text": "Das ist gar keine einfache Frage. Schauen wir uns zunächst auf der Meta-Ebene die Möglichkeiten an, diese zu definieren."
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "position": {},
+      "depth": 2,
+      "caption": [
+        {
+          "type": "text",
+          "position": {},
+          "text": "Die Beschreibungsmöglichkeiten reeller Zahlen "
+        }
+      ],
+      "content": [
+        {
+          "type": "paragraph",
+          "position": {},
+          "content": [
+            {
+              "type": "text",
+              "position": {},
+              "text": "Jeder von uns hat bereits eine intuitive Vorstellung, was reelle Zahlen sind, auch wenn nicht alle diese Idee in Worte fassen können. Beispielsweise kann man sich die reellen Zahlen als Punkte auf der Zahlengeraden vorstellen:"
+            }
+          ]
+        },
+        {
+          "type": "internalreference",
+          "position": {},
+          "target": [
+            {
+              "type": "text",
+              "position": {},
+              "text": "File:Simple_number_line.svg"
+            }
+          ],
+          "options": [
+            [
+              {
+                "type": "text",
+                "position": {},
+                "text": "center"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "position": {},
+                "text": "500px"
+              }
+            ]
+          ],
+          "caption": [
+            {
+              "type": "text",
+              "position": {},
+              "text": "Vorstellung der reellen Zahlen als Punkte auf der Zahlengeraden"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "position": {},
+          "content": [
+            {
+              "type": "text",
+              "position": {},
+              "text": "Unsere Aufgabe besteht darin, diese intuitive Idee in die exakte Sprache der Mathematik zu übersetzen. Dazu haben wir zwei Möglichkeiten: die "
+            },
+            {
+              "type": "formatted",
+              "position": {},
+              "markup": "italic",
+              "content": [
+                {
+                  "type": "text",
+                  "position": {},
+                  "text": "axiomatische"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "position": {},
+              "text": " und die "
+            },
+            {
+              "type": "formatted",
+              "position": {},
+              "markup": "italic",
+              "content": [
+                {
+                  "type": "text",
+                  "position": {},
+                  "text": "konstruktive"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "position": {},
+              "text": " Beschreibung."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "position": {},
+          "depth": 3,
+          "caption": [
+            {
+              "type": "text",
+              "position": {},
+              "text": "Die axiomatische Beschreibung "
+            }
+          ],
+          "content": [
+            {
+              "type": "internalreference",
+              "position": {},
+              "target": [
+                {
+                  "type": "text",
+                  "position": {},
+                  "text": "Datei:Skizze zum mathematischen Gebäude.svg"
+                }
+              ],
+              "options": [
+                [
+                  {
+                    "type": "text",
+                    "position": {},
+                    "text": "miniatur"
+                  }
+                ]
+              ],
+              "caption": [
+                {
+                  "type": "text",
+                  "position": {},
+                  "text": "In der axiomatischen Beschreibung der Analysis legen wir mit den Axiomen das Fundament, auf dem wir schrittweise die Theoreme der Analysis herleiten."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "position": {},
+              "content": [
+                {
+                  "type": "text",
+                  "position": {},
+                  "text": "Bei der axiomatischen Beschreibung wird nicht direkt gesagt, was reelle Zahlen sind, es wird vielmehr nur erklärt, welche Eigenschaften sie haben. Bei dieser Herangehensweise sagen wir: „Die reellen Zahlen sind eine Menge von Objekten, die folgende charakteristische Eigenschaften besitzen: <Aufzählung der Eigenschaften reeller Zahlen>“. Die grundlegenden Eigenschaften werden dabei über "
+                },
+                {
+                  "type": "internalreference",
+                  "position": {},
+                  "target": [
+                    {
+                      "type": "text",
+                      "position": {},
+                      "text": "Mathe für Nicht-Freaks: Wörterbuch#Anker:Axiom"
+                    }
+                  ],
+                  "options": [],
+                  "caption": [
+                    {
+                      "type": "text",
+                      "position": {},
+                      "text": "Axiome"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "position": {},
+                  "text": " festgelegt. Zur Erinnerung: Ein Axiom ist eine "
+                },
+                {
+                  "type": "internalreference",
+                  "position": {},
+                  "target": [
+                    {
+                      "type": "text",
+                      "position": {},
+                      "text": "Mathe für Nicht-Freaks: Aussagenlogik#Aussage"
+                    }
+                  ],
+                  "options": [],
+                  "caption": [
+                    {
+                      "type": "text",
+                      "position": {},
+                      "text": "Aussage"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "position": {},
+                  "text": ", die ohne Beweis als wahr angenommen wird. Jedes mathematische Modell, das alle genannten Eigenschaften/Axiome erfüllt, wird als Modell der reellen Zahlen angesehen. Aussagen, die auf Grundlage der Axiome bewiesen werden, werden Theoreme genannt."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
