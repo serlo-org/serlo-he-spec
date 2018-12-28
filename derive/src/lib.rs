@@ -123,7 +123,7 @@ fn impl_plugin_struct(plugin: &Plugin) -> TokenStream {
     let attribute_names = &attribute_names_vec;
     let attribute_names2 = &attribute_names_vec;
     quote! {
-        #[derive(Debug, Clone, PartialEq)]
+        #[derive(Debug, Clone, PartialEq, Default)]
         #[doc = #description]
         #[doc = "\n\n"]
         #[doc = #documentation]
