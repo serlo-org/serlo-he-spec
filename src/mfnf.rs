@@ -3,7 +3,7 @@
 use crate::plugins::*;
 use mediawiki_parser::{Element, TransformationError};
 
-pub fn plugin_vec_from_elements(
+fn plugin_vec_from_elements(
     mut content: Vec<Element>,
 ) -> Result<Vec<Plugins>, TransformationError> {
     let mut new = vec![];

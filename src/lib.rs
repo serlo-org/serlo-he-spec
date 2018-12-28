@@ -9,6 +9,8 @@ mod test {
     #[cfg(feature = "mfnf")]
     use crate::mfnf::*;
     use crate::{Heading, Markdown, Plugins};
+    #[cfg(feature = "mfnf")]
+    use std::fs;
 
     fn example_heading_doc() -> Plugins {
         Plugins::Heading(Heading {
