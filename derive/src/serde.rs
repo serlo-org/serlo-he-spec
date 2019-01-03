@@ -1,4 +1,4 @@
-use crate::util::{identifier_from_locator, shadow_identifier};
+use crate::util::{shadow_identifier, syn_identifier_from_locator};
 use proc_macro2::TokenStream;
 use quote::quote;
 use serlo_he_spec_meta::Plugin;
@@ -7,7 +7,7 @@ use syn::Ident;
 pub fn impl_serde(plugins: &Vec<Plugin>) -> TokenStream {
     let identifier_vec = plugins
         .iter()
-        .map(|p| identifier_from_locator(&p.identifier.name))
+        .map(|p| syn_identifier_from_locator(&p.identifier.name))
         .collect::<Vec<Ident>>();
     let shadows_vec = plugins
         .iter()

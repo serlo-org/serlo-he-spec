@@ -2,6 +2,26 @@
 
 use semver::Version;
 use serde_derive::{Deserialize, Serialize};
+use std::collections::HashMap;
+
+/// The specification object.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Specification {
+    /// maps content types to their editor handlers (components).
+    pub editor_types: HashMap<String, EditorComponents>,
+
+    /// specification for the plugins.
+    pub plugins: Vec<Plugin>,
+}
+
+/// Names of editor component types for an attribute type.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct EditorComponents {
+    /// component used for rendering a type in the serlo editor.
+    pub renderer: String,
+    /// component used to edit a type in the serlo editor.
+    pub editor: String,
+}
 
 /// Non-exclusive plugin categories.
 #[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
@@ -113,4 +133,27 @@ mod serde_semver {
     {
         deserializer.deserialize_str(SVVisitor)
     }
+}
+
+/// generate a plugin identifier from a plugin locator
+pub fn identifier_from_locator(locator: &str) -> String {
+    locator
+        .split("/")
+        .last()
+        .unwrap_or_else(|| panic!("{} is not a valid plugin locator!", locator))
+        .chars()
+        .fold((String::new(), true), |mut acc, c| {
+            if c == '-' {
+                acc.1 = true;
+            } else {
+                if acc.1 {
+                    acc.0.push_str(&c.to_uppercase().to_string());
+                    acc.1 = false;
+                } else {
+                    acc.0.push(c);
+                }
+            }
+            acc
+        })
+        .0
 }

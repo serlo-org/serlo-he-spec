@@ -13,12 +13,12 @@ use std::path::PathBuf;
 use syn;
 use syn::{Ident, LitStr};
 
-use serlo_he_spec_meta::{Attribute, Multiplicity, Plugin};
+use serlo_he_spec_meta::{Attribute, Multiplicity, Plugin, Specification};
 
 mod serde;
 mod util;
 
-use crate::util::{identifier_from_locator, shadow_identifier};
+use crate::util::{syn_identifier_from_locator, shadow_identifier};
 
 #[proc_macro]
 pub fn plugin_spec(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -30,11 +30,11 @@ pub fn plugin_spec(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut out = TokenStream::new();
 
     let spec = read_spec(&path);
-    for plugin in &spec {
+    for plugin in &spec.plugins {
         out.extend(impl_plugin_struct(&plugin))
     }
     out.extend(impl_plugins_enum(&spec));
-    out.extend(crate::serde::impl_serde(&spec));
+    out.extend(crate::serde::impl_serde(&spec.plugins));
     out.into()
 }
 
@@ -61,16 +61,20 @@ fn impl_attribute(attribute: &Attribute) -> TokenStream {
     }
 }
 
-fn impl_plugins_enum(plugins: &Vec<Plugin>) -> TokenStream {
-    let identifier_vec = plugins
+fn impl_plugins_enum(spec: &Specification) -> TokenStream {
+    let identifier_vec = spec.plugins
         .iter()
-        .map(|p| identifier_from_locator(&p.identifier.name))
+        .map(|p| syn_identifier_from_locator(&p.identifier.name))
         .collect::<Vec<Ident>>();
     let identifiers = &identifier_vec;
     let identifiers2 = &identifier_vec;
-    let descriptions = plugins
+    let descriptions = spec.plugins
         .iter()
         .map(|p| LitStr::new(&p.description, Span::call_site()));
+    let serial_spec = LitStr::new(
+        &serde_json::to_string(&spec).expect("could not serialize plugin spec!"),
+        Span::call_site(),
+    );
     quote! {
         /// The specified plugins.
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -92,16 +96,16 @@ fn impl_plugins_enum(plugins: &Vec<Plugin>) -> TokenStream {
                 }
             }
 
-            /// Get specification of all variants.
-            pub fn specifications() -> Vec<serlo_he_spec_meta::Plugin> {
-                vec![#(#identifiers::specification()),*]
+            /// The complete specification object for all plugins.
+            pub fn whole_specification() -> serlo_he_spec_meta::Specification {
+                serde_json::from_str(#serial_spec).expect("invalid specification in code!")
             }
         }
     }
 }
 
 fn impl_plugin_struct(plugin: &Plugin) -> TokenStream {
-    let ident = identifier_from_locator(&plugin.identifier.name);
+    let ident = syn_identifier_from_locator(&plugin.identifier.name);
     let shadow = shadow_identifier(&plugin.identifier.name);
     let description = LitStr::new(&plugin.description, Span::call_site());
     let documentation = LitStr::new(&plugin.documentation, Span::call_site());
@@ -162,7 +166,7 @@ fn impl_plugin_struct(plugin: &Plugin) -> TokenStream {
     }
 }
 
-fn read_spec(path: &PathBuf) -> Vec<Plugin> {
+fn read_spec(path: &PathBuf) -> Specification {
     let root = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".into()));
     match serde_yaml::from_str(&{
         let mut input = String::new();

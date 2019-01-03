@@ -2,8 +2,8 @@ use proc_macro2::Span;
 use syn::Ident;
 
 /// generate a plugin identifier from a plugin locator
-pub fn identifier_from_locator(locator: &str) -> Ident {
-    let last = locator
+pub fn identifier_from_locator(locator: &str) -> String {
+    locator
         .split("/")
         .last()
         .unwrap_or_else(|| panic!("{} is not a valid plugin locator!", locator))
@@ -21,8 +21,12 @@ pub fn identifier_from_locator(locator: &str) -> Ident {
             }
             acc
         })
-        .0;
-    Ident::new(&last, Span::call_site())
+        .0
+}
+
+/// generate a plugin identifier from a plugin locator
+pub fn syn_identifier_from_locator(locator: &str) -> Ident {
+    Ident::new(&identifier_from_locator(locator), Span::call_site())
 }
 
 /// Identifier of the shadow struct of a plugin.

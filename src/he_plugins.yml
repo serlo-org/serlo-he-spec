@@ -1,39 +1,46 @@
-- identifier:
-    name: he.serlo.org/heading
-    version: "0.1.0"
-  categories: [Structure]
-  description: A simple heading.
-  documentation: |
-      Headings give an article its structure. They make up a hierarchy where
-      more general headings are on top with more specific sub-headings under them.
-     
-      What makes a good heading?
-      --------------------------
+editor_types:
+  markdown:
+    renderer: MarkdownRenderer
+    editor: MarkdownEdit
+  heading:
+    renderer: HeadingRenderer
+    editor: HeadingEdit
+plugins:
+  - identifier:
+      name: "@serlo-he/heading"
+      version: "0.1.0"
+    categories: [Structure]
+    description: Simple Heading
+    documentation: |
+        Headings give an article its structure. They make up a hierarchy where
+        more general headings are on top with more specific sub-headings under them.
+       
+        What makes a good heading?
+        --------------------------
 
-      * heading titles should capture the gist of their contents well. 
-      * ...
-  attributes:
-    - identifier: caption
-      multiplicity: Once
-      constraints: []
-      content_type: HEContent
-    - identifier: content
-      multiplicity: Once
-      constraints: []
-      content_type: HEContent
+        * heading titles should capture the gist of their contents well. 
+        * ...
+    attributes:
+      - identifier: caption
+        multiplicity: Once
+        constraints: []
+        content_type: HEContent
+      - identifier: content
+        multiplicity: Once
+        constraints: []
+        content_type: HEContent
 
-- identifier:
-    name: he.serlo.org/markdown
-    version: "0.1.0"
-  categories: []
-  description: Formatted text in *simple* markdown.
-  documentation: |
-      Simple unicode text without special markup. 
-      Markdown features like Headings, Tables, etc. are **not** allowed! Instead,
-      use the appropriate plugins.
-  attributes:
-    - identifier: content
-      multiplicity: Once
-      constraints: []
-      content_type: String
-
+  - identifier:
+      name: "@serlo-he/markdown"
+      version: "0.1.0"
+    categories: []
+    description: Formatted Text
+    documentation: |
+        Simple unicode text without special markup. 
+        Markdown features like Headings, Tables, etc. are **not** allowed! Instead,
+        use the appropriate plugins.
+    attributes:
+      - identifier: content
+        multiplicity: Once
+        constraints: []
+        content_type: MarkdownString
