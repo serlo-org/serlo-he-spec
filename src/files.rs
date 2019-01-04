@@ -27,8 +27,20 @@ macro_rules! PACKAGE_JSON_PATCH {
     () => {
         r#"{{
     "name": {:?},
-    "version: {:?}
+    "version": {:?}
 }}
+        "#
+    };
+}
+
+#[macro_export]
+macro_rules! README {
+    () => {
+        r#"# {}
+
+Attributes: `{}`
+
+{}
         "#
     };
 }

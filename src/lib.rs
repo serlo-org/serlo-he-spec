@@ -6,14 +6,17 @@ pub use crate::plugins::*;
 
 pub fn editor_impl(plugin: &Plugins) -> String {
     let spec = plugin.specification();
-    format!(r#"
+    format!(
+        r#"
 export default {{
     Component: {},
     IconComponent: {},
     name: '{}',
     version: '{}',
     text: '{}'
-}}"#, "Dummy", "Dummy", spec.identifier.name, spec.identifier.version, spec.description)
+}}"#,
+        "Dummy", "Dummy", spec.identifier.name, spec.identifier.version, spec.description
+    )
 }
 
 #[cfg(test)]
