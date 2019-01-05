@@ -1,4 +1,5 @@
 use serlo_he_spec::Plugins;
+use serlo_he_spec_meta::{identifier_from_locator, Multiplicity, Plugin, Specification};
 use std::fs;
 use std::io::prelude::*;
 use std::path::PathBuf;
@@ -18,6 +19,10 @@ enum Args {
         /// Write the generated plugin files to disk.
         #[structopt(short = "w", long = "write")]
         write: bool,
+
+        /// List required files which will not be generated.
+        #[structopt(short = "r", long = "requirements")]
+        requirements: bool,
 
         /// Root directory to write files to.
         #[structopt(
@@ -39,22 +44,20 @@ fn main() {
     match args {
         Args::Generate {
             ref plugin_name,
-            ref write,
             ref directory,
+            requirements,
+            write,
         } => {
             let plugin = spec
                 .plugins
                 .iter()
                 .find(|p| p.identifier.name.ends_with(plugin_name))
                 .expect(&format!("no plugin with name {:?}!", plugin_name));
-            let editor_types = spec
-                .editor_types
-                .get(plugin.identifier.name.split('/').last().unwrap_or_default())
-                .expect("editor types not defined for plugin!");
+            let identifier = identifier_from_locator(&plugin.identifier.name);
 
-            let files = vec![
+            let mut files = vec![
                 files::GeneratedFile {
-                    path: PathBuf::from("package_json.patch"),
+                    path: PathBuf::from("./package_json.patch"),
                     content: format!(
                         PACKAGE_JSON_PATCH!(),
                         &plugin.identifier.name,
@@ -62,24 +65,37 @@ fn main() {
                     ),
                 },
                 files::GeneratedFile {
-                    path: PathBuf::from("index.ts"),
+                    path: PathBuf::from("src/index.ts"),
                     content: format!(
                         REACT_DEFINITION!(),
-                        &editor_types.editor, "editor", &editor_types.editor, &plugin.description
-                    ),
-                },
-                files::GeneratedFile {
-                    path: PathBuf::from("index.renderer.ts"),
-                    content: format!(
-                        REACT_DEFINITION!(),
-                        &editor_types.renderer,
+                        &format!("{}Edit", &identifier),
                         "editor",
-                        &editor_types.renderer,
+                        &format!("{}Edit", &identifier),
                         &plugin.description
                     ),
                 },
                 files::GeneratedFile {
-                    path: PathBuf::from("README.md"),
+                    path: PathBuf::from("src/index.renderer.ts"),
+                    content: format!(
+                        REACT_DEFINITION!(),
+                        &format!("{}Renderer", &identifier),
+                        "renderer",
+                        &format!("{}Renderer", &identifier),
+                        &plugin.description
+                    ),
+                },
+                files::GeneratedFile {
+                    path: PathBuf::from("src/state.ts"),
+                    content: {
+                        format!(
+                            STATE!(),
+                            &identifier,
+                            &typed_attribute_list(&plugin, &spec).join(",\n")
+                        )
+                    },
+                },
+                files::GeneratedFile {
+                    path: PathBuf::from("./README.md"),
                     content: format!(
                         README!(),
                         &plugin.identifier.name,
@@ -93,10 +109,30 @@ fn main() {
                     ),
                 },
             ];
-            if *write {
+
+            for mut file in &mut files {
+                file.path = directory.join(&file.path);
+            }
+
+            if requirements {
+                let requirements = vec![
+                    "package.json",
+                    "LICENSE",
+                    "src/plugin.ts",
+                    "babel.config.js",
+                    "tsconfig.json",
+                ];
+                for req in requirements {
+                    println!("{}", req);
+                }
+                return;
+            }
+
+            if write {
                 for file in files {
-                    fs::create_dir_all(&directory).expect("could not create output directory!");
-                    let mut f = fs::File::create(&directory.join(&file.path))
+                    let base_dir = PathBuf::from(&file.path.parent().unwrap());
+                    fs::create_dir_all(&base_dir).expect("could not create output directory!");
+                    let mut f = fs::File::create(&file.path)
                         .expect(&format!("could not create {:?}", &file.path));
                     write!(&mut f, "{}", &file.content).expect("could not write to output!");
                 }
@@ -113,4 +149,30 @@ fn main() {
             }
         }
     }
+}
+
+fn typed_attribute_list(plugin: &Plugin, spec: &Specification) -> Vec<String> {
+    plugin
+        .attributes
+        .iter()
+        .map(|a| {
+            format!("    {}: {}", a.identifier, {
+                let base_type = spec
+                    .editor_types
+                    .get(&a.content_type)
+                    .expect(&format!(
+                        "no typescript type defined for {:?}",
+                        a.content_type
+                    ))
+                    .to_string();
+                &match a.multiplicity {
+                    Multiplicity::Once => base_type,
+                    Multiplicity::Optional => format!("{} | null", &base_type),
+                    Multiplicity::Arbitrary | Multiplicity::MinOnce => {
+                        format!("List<{}>", &base_type)
+                    }
+                }
+            })
+        })
+        .collect::<Vec<String>>()
 }

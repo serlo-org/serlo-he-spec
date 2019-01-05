@@ -7,20 +7,11 @@ use std::collections::HashMap;
 /// The specification object.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Specification {
-    /// maps content types to their editor handlers (components).
-    pub editor_types: HashMap<String, EditorComponents>,
+    /// maps content types to their javascript types.
+    pub editor_types: HashMap<String, String>,
 
     /// specification for the plugins.
     pub plugins: Vec<Plugin>,
-}
-
-/// Names of editor component types for an attribute type.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct EditorComponents {
-    /// component used for rendering a type in the serlo editor.
-    pub renderer: String,
-    /// component used to edit a type in the serlo editor.
-    pub editor: String,
 }
 
 /// Non-exclusive plugin categories.

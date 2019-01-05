@@ -24,15 +24,20 @@ pub fn impl_serde(plugins: &Vec<Plugin>) -> TokenStream {
             where
                 S: ser::Serializer,
             {
-                let mut sv = serializer.serialize_struct(
-                    stringify!(#identifiers2),
-                    2
-                )?;
-                sv.serialize_field("plugin", &#identifiers3::specification().identifier)?;
-                let shadow = #shadows::from_plugin(self.clone());
-
-                sv.serialize_field("state", &shadow)?;
-                sv.end()
+                let shadow = PluginInstance {
+                    id: Uuid::new_v4(),
+                    cells: vec![
+                        EditorCell {
+                            id: Uuid::new_v4(),
+                            content: CellContent {
+                                plugin: #identifiers3::specification().identifier.clone(),
+                                state: #shadows::from_plugin(self.clone()),
+                            },
+                            rows: None
+                        }
+                    ],
+                };
+                shadow.serialize(serializer)
             }
         }
         )*

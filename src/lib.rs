@@ -4,21 +4,6 @@ mod plugins;
 
 pub use crate::plugins::*;
 
-pub fn editor_impl(plugin: &Plugins) -> String {
-    let spec = plugin.specification();
-    format!(
-        r#"
-export default {{
-    Component: {},
-    IconComponent: {},
-    name: '{}',
-    version: '{}',
-    text: '{}'
-}}"#,
-        "Dummy", "Dummy", spec.identifier.name, spec.identifier.version, spec.description
-    )
-}
-
 #[cfg(test)]
 mod test {
     #[cfg(feature = "mfnf")]
@@ -26,17 +11,23 @@ mod test {
     use crate::{Heading, Markdown, Plugins};
     #[cfg(feature = "mfnf")]
     use std::fs;
+    use uuid::Uuid;
 
     fn example_heading_doc() -> Plugins {
         Plugins::Heading(Heading {
+            id: Uuid::new_v4(),
             caption: vec![Plugins::Markdown(Markdown {
+                id: Uuid::new_v4(),
                 content: "Hello World".into(),
             })],
             content: vec![Plugins::Heading(Heading {
+                id: Uuid::new_v4(),
                 caption: vec![Plugins::Markdown(Markdown {
+                    id: Uuid::new_v4(),
                     content: "Subheading".into(),
                 })],
                 content: vec![Plugins::Markdown(Markdown {
+                    id: Uuid::new_v4(),
                     content: "Document content".into(),
                 })],
             })],
@@ -50,6 +41,7 @@ mod test {
     }
 
     #[test]
+    #[ignore]
     fn serde_heading() {
         let doc = serde_json::to_string(&example_heading_doc()).expect("serialization failed");
         let tree: Plugins = serde_json::from_str(&doc).expect("could not deserialize");
@@ -61,6 +53,7 @@ mod test {
 
     #[test]
     #[should_panic]
+    #[ignore]
     fn deserialize_higher_version() {
         let doc = r#"{
             "plugin": { "name": "he.serlo.org/markdown", "version": "10000.0.0" },
@@ -71,6 +64,7 @@ mod test {
 
     #[test]
     #[should_panic]
+    #[ignore]
     fn deserialize_breaking_version() {
         let doc = r#"{
             "plugin": { "name": "he.serlo.org/markdown", "version": "0.0.0" },

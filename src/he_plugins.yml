@@ -1,10 +1,6 @@
 editor_types:
-  markdown:
-    renderer: MarkdownRenderer
-    editor: MarkdownEdit
-  heading:
-    renderer: HeadingRenderer
-    editor: HeadingEdit
+  HEContent: Array<Document>
+  MarkdownString: string
 plugins:
   - identifier:
       name: "@serlo-he/heading"

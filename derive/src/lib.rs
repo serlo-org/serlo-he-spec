@@ -86,6 +86,28 @@ fn impl_plugins_enum(spec: &Specification) -> TokenStream {
             ),*
         }
 
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        /// Represents a editor plugin instance, only used during ser/de.
+        struct PluginInstance<T> {
+            id: Uuid,
+            cells: Vec<EditorCell<T>>,
+        }
+
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        /// Represents a editor cell, only used during ser/de.
+        struct EditorCell<T> {
+            id: Uuid,
+            content: CellContent<T>,
+            rows: Option<()>,
+        }
+
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        /// Represents the editor cell, with plugin identifier and state.
+        struct CellContent<T> {
+            plugin: serlo_he_spec_meta::Identifier,
+            state: T,
+        }
+
         impl Plugins {
             /// Get the specification of a variant.
             pub fn specification(&self) -> serlo_he_spec_meta::Plugin {
@@ -132,6 +154,7 @@ fn impl_plugin_struct(plugin: &Plugin) -> TokenStream {
         #[doc = "\n\n"]
         #[doc = #documentation]
         pub struct #ident {
+            pub id: Uuid,
             #(#attributes),*
         }
 
@@ -139,18 +162,22 @@ fn impl_plugin_struct(plugin: &Plugin) -> TokenStream {
         /// Represents only the plugin state, without identifier information.
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
         struct #shadow {
+            #[serde(skip)]
+            pub id: Uuid,
             #(#attributes),*
         }
 
         impl #shadow {
             pub fn into_plugin(self) -> #ident {
                 #ident {
+                    id: self.id,
                     #(#attribute_names: self.#attribute_names2),*
                 }
             }
 
             pub fn from_plugin(plugin: #ident) -> Self {
                 Self {
+                    id: plugin.id,
                     #(#attribute_names: plugin.#attribute_names2),*
                 }
             }
