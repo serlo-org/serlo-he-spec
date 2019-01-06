@@ -18,7 +18,7 @@ use serlo_he_spec_meta::{Attribute, Multiplicity, Plugin, Specification};
 mod serde;
 mod util;
 
-use crate::util::{syn_identifier_from_locator, shadow_identifier};
+use crate::util::{shadow_identifier, syn_identifier_from_locator};
 
 #[proc_macro]
 pub fn plugin_spec(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -62,13 +62,15 @@ fn impl_attribute(attribute: &Attribute) -> TokenStream {
 }
 
 fn impl_plugins_enum(spec: &Specification) -> TokenStream {
-    let identifier_vec = spec.plugins
+    let identifier_vec = spec
+        .plugins
         .iter()
         .map(|p| syn_identifier_from_locator(&p.identifier.name))
         .collect::<Vec<Ident>>();
     let identifiers = &identifier_vec;
     let identifiers2 = &identifier_vec;
-    let descriptions = spec.plugins
+    let descriptions = spec
+        .plugins
         .iter()
         .map(|p| LitStr::new(&p.description, Span::call_site()));
     let serial_spec = LitStr::new(
@@ -162,22 +164,19 @@ fn impl_plugin_struct(plugin: &Plugin) -> TokenStream {
         /// Represents only the plugin state, without identifier information.
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
         struct #shadow {
-            #[serde(skip)]
-            pub id: Uuid,
             #(#attributes),*
         }
 
         impl #shadow {
-            pub fn into_plugin(self) -> #ident {
+            pub fn into_plugin(self, id: Uuid) -> #ident {
                 #ident {
-                    id: self.id,
+                    id,
                     #(#attribute_names: self.#attribute_names2),*
                 }
             }
 
             pub fn from_plugin(plugin: #ident) -> Self {
                 Self {
-                    id: plugin.id,
                     #(#attribute_names: plugin.#attribute_names2),*
                 }
             }

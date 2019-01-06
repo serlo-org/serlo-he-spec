@@ -41,7 +41,6 @@ mod test {
     }
 
     #[test]
-    #[ignore]
     fn serde_heading() {
         let doc = serde_json::to_string(&example_heading_doc()).expect("serialization failed");
         let tree: Plugins = serde_json::from_str(&doc).expect("could not deserialize");
@@ -52,23 +51,19 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
-    #[ignore]
-    fn deserialize_higher_version() {
+    fn deserialize_single_plugin() {
         let doc = r#"{
-            "plugin": { "name": "he.serlo.org/markdown", "version": "10000.0.0" },
-            "state": { "content": "Test" }
-        }"#;
-        let _: Markdown = serde_json::from_str(&doc).unwrap();
-    }
-
-    #[test]
-    #[should_panic]
-    #[ignore]
-    fn deserialize_breaking_version() {
-        let doc = r#"{
-            "plugin": { "name": "he.serlo.org/markdown", "version": "0.0.0" },
-            "state": { "content": "Test" }
+          "id": "a6f91bdc-403f-49d3-831d-5c0d09bfc28f",
+          "cells": [
+            {
+              "id": "a6f91bdc-403f-49d3-831d-5c0d09bfc28f",
+              "content": {
+                "plugin": { "name": "he.serlo.org/markdown", "version": "0.0.0" },
+                "state": { "content": "Test" }
+              },
+              "rows": null
+            }
+          ]
         }"#;
         let _: Markdown = serde_json::from_str(&doc).unwrap();
     }
