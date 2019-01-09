@@ -1,13 +1,8 @@
 [package]
-name = "serlo-he-spec"
+name = "serlo_he_spec"
 version = "0.1.0"
 authors = ["Valentin Roland <valentin@vroland.de>"]
 edition = "2018"
-
-[[bin]]
-name = "serlo_specgen"
-path = "src/main.rs"
-doc = true
 
 [features]
 mfnf = ["mediawiki_parser"]
@@ -17,7 +12,6 @@ serlo_he_spec_derive = { path = "derive" }
 serlo_he_spec_meta = { path = "meta" }
 serde = {version = "1.0", features = ["derive"]}
 serde_json = "1.0"
-structopt = "0.2"
 mediawiki_parser = { version = "0.4", optional = true }
 mwparser_utils = { git = "https://github.com/vroland/mediawiki-parser-utils.git" , optional = true}
 uuid = { version = "0.7", features = ["serde", "v4"] }

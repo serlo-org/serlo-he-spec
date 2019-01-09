@@ -1,0 +1,16 @@
+[package]
+name = "serlo_he_spec_generate"
+version = "0.1.0"
+authors = ["Valentin Roland <valentin@vroland.de>"]
+edition = "2018"
+
+[[bin]]
+name = "serlo_specgen"
+path = "src/main.rs"
+doc = true
+
+[dependencies]
+serlo_he_spec = { path = "../" }
+serlo_he_spec_meta = { path = "../meta" }
+serde = { version = "1.0", features = ["derive"] }
+structopt = "0.2"

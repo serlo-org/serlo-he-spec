@@ -8,7 +8,7 @@ pub use crate::plugins::*;
 mod test {
     #[cfg(feature = "mfnf")]
     use crate::mfnf::*;
-    use crate::{Heading, Markdown, Plugins};
+    use crate::{*};
     #[cfg(feature = "mfnf")]
     use std::fs;
     use uuid::Uuid;
@@ -16,16 +16,16 @@ mod test {
     fn example_heading_doc() -> Plugins {
         Plugins::Heading(Heading {
             id: Uuid::new_v4(),
-            caption: vec![Plugins::Markdown(Markdown {
+            caption: Title {
                 id: Uuid::new_v4(),
                 content: "Hello World".into(),
-            })],
+            },
             content: vec![Plugins::Heading(Heading {
                 id: Uuid::new_v4(),
-                caption: vec![Plugins::Markdown(Markdown {
+                caption: Title {
                     id: Uuid::new_v4(),
                     content: "Subheading".into(),
-                })],
+                },
                 content: vec![Plugins::Markdown(Markdown {
                     id: Uuid::new_v4(),
                     content: "Document content".into(),

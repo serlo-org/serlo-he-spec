@@ -1,11 +1,14 @@
 use serlo_he_spec::Plugins;
-use serlo_he_spec_meta::{identifier_from_locator, Multiplicity, Plugin, Specification};
+use serlo_he_spec_meta::identifier_from_locator;
 use std::fs;
 use std::io::prelude::*;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
 mod files;
+mod generate;
+
+use crate::generate::{typed_attribute_list, plugin_package_imports};
 
 #[derive(StructOpt)]
 enum Args {
@@ -89,8 +92,13 @@ fn main() {
                     content: {
                         format!(
                             STATE!(),
+                            &plugin_package_imports(&plugin, &spec)
+                                .expect("error generating state dependencies!")
+                                .join("\n"),
                             &identifier,
-                            &typed_attribute_list(&plugin, &spec).join(",\n")
+                            &typed_attribute_list(&plugin, &spec)
+                                .expect("error generating attributes!")
+                                .join(",\n")
                         )
                     },
                 },
@@ -149,30 +157,4 @@ fn main() {
             }
         }
     }
-}
-
-fn typed_attribute_list(plugin: &Plugin, spec: &Specification) -> Vec<String> {
-    plugin
-        .attributes
-        .iter()
-        .map(|a| {
-            format!("    {}: {}", a.identifier, {
-                let base_type = spec
-                    .editor_types
-                    .get(&a.content_type)
-                    .expect(&format!(
-                        "no typescript type defined for {:?}",
-                        a.content_type
-                    ))
-                    .to_string();
-                &match a.multiplicity {
-                    Multiplicity::Once => base_type,
-                    Multiplicity::Optional => format!("{} | null", &base_type),
-                    Multiplicity::Arbitrary | Multiplicity::MinOnce => {
-                        format!("List<{}>", &base_type)
-                    }
-                }
-            })
-        })
-        .collect::<Vec<String>>()
 }

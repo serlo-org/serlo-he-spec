@@ -1,6 +1,7 @@
 editor_types:
-  HEContent: Array<Document>
+  Plugins: Editable
   MarkdownString: string
+  TitleString: string
 plugins:
   - identifier:
       name: "@serlo-he/heading"
@@ -20,11 +21,11 @@ plugins:
       - identifier: caption
         multiplicity: Once
         constraints: []
-        content_type: HEContent
+        content_type: Title
       - identifier: content
-        multiplicity: Once
+        multiplicity: Arbitrary
         constraints: []
-        content_type: HEContent
+        content_type: Plugins
 
   - identifier:
       name: "@serlo-he/markdown"
@@ -40,3 +41,20 @@ plugins:
         multiplicity: Once
         constraints: []
         content_type: MarkdownString
+  - identifier:
+      name: "@serlo-he/title"
+      version: "0.1.0"
+    categories: []
+    description: Title
+    documentation: |
+        Title of a heading, exercise or semantic box. 
+        Titles may only contain the following markup:
+            * plain utf-8 text.
+            * LaTeX math.
+
+        Usually, you should't need to create this plugin manually when using the serlo editor.
+    attributes:
+      - identifier: content
+        multiplicity: Once
+        constraints: []
+        content_type: TitleString
