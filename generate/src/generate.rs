@@ -1,4 +1,5 @@
 use serlo_he_spec_meta::{identifier_from_locator, Multiplicity, Plugin, Specification};
+use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 
@@ -28,7 +29,9 @@ impl Error for GenerationError {
 
 /// find a plugin specification by its type identifier, like "Heading".
 pub fn find_plugin_by_typename<'p>(name: &str, spec: &'p Specification) -> Option<&'p Plugin> {
-    spec.plugins.iter().find(|plugin| identifier_from_locator(&plugin.identifier.name) == name)
+    spec.plugins
+        .iter()
+        .find(|plugin| identifier_from_locator(&plugin.identifier.name) == name)
 }
 
 pub fn typed_attribute_list(
@@ -41,11 +44,13 @@ pub fn typed_attribute_list(
                 Some(t) => t.clone(),
                 None => match find_plugin_by_typename(&a.content_type, &spec) {
                     Some(plugin) => identifier_from_locator(&plugin.identifier.name),
-                    None => return Err(GenerationError::new(format!(
-                        "no typescript type defined for {:?}",
-                        a.content_type
-                    )))
-                }
+                    None => {
+                        return Err(GenerationError::new(format!(
+                            "no typescript type defined for {:?}",
+                            a.content_type
+                        )))
+                    }
+                },
             };
             &match a.multiplicity {
                 Multiplicity::Once => base_type,
@@ -63,18 +68,31 @@ pub fn plugin_package_imports(
     plugin: &Plugin,
     spec: &Specification,
 ) -> Result<Vec<String>, GenerationError> {
-    plugin.attributes.iter().filter(|a| spec.editor_types.get(&a.content_type).is_none()).try_fold(vec![], |mut attrs, a| {
-        let plugin = match find_plugin_by_typename(&a.content_type, &spec) {
-            Some(plugin) => plugin,
-            None => return Err(GenerationError::new(format!(
-                "no typescript type defined for {:?}",
-                a.content_type
-            )))
+    let mut additional_types: HashMap<String, String> = HashMap::new();
+    additional_types.insert(
+        "Editable".into(),
+        "@splish-me/editor-core/lib/editable.component".into(),
+    );
+    plugin.attributes.iter().try_fold(vec![], |mut attrs, a| {
+        let (name, path) = match spec.editor_types.get(&a.content_type) {
+            Some(editor_type) => match additional_types.get(editor_type) {
+                Some(path) => (editor_type.clone(), path.clone()),
+                None => return Ok(attrs),
+            },
+            None => match find_plugin_by_typename(&a.content_type, &spec) {
+                Some(plugin) => (
+                    identifier_from_locator(&plugin.identifier.name),
+                    plugin.identifier.name.clone(),
+                ),
+                None => {
+                    return Err(GenerationError::new(format!(
+                        "no typescript type defined for {:?}",
+                        a.content_type
+                    )))
+                }
+            },
         };
-        attrs.push(format!("import {{ {} }} from '{}'",
-            &identifier_from_locator(&plugin.identifier.name),
-            &plugin.identifier.name
-        ));
+        attrs.push(format!("import {{ {} }} from '{}'", name, path));
         Ok(attrs)
     })
 }
