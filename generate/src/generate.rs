@@ -43,7 +43,9 @@ pub fn typed_attribute_list(
             let base_type = match spec.editor_types.get(&a.content_type) {
                 Some(t) => t.clone(),
                 None => match find_plugin_by_typename(&a.content_type, &spec) {
-                    Some(plugin) => identifier_from_locator(&plugin.identifier.name),
+                    Some(plugin) => {
+                        format!("{}State", identifier_from_locator(&plugin.identifier.name))
+                    }
                     None => {
                         return Err(GenerationError::new(format!(
                             "no typescript type defined for {:?}",
@@ -81,8 +83,16 @@ pub fn plugin_package_imports(
             },
             None => match find_plugin_by_typename(&a.content_type, &spec) {
                 Some(plugin) => (
-                    identifier_from_locator(&plugin.identifier.name),
-                    plugin.identifier.name.clone(),
+                    format!("{}State", &identifier_from_locator(&plugin.identifier.name)),
+                    format!(
+                        "../../{}/lib/state",
+                        plugin
+                            .identifier
+                            .name
+                            .split("/")
+                            .last()
+                            .expect("malformed plugin identifier!")
+                    ),
                 ),
                 None => {
                     return Err(GenerationError::new(format!(
