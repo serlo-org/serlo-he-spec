@@ -57,7 +57,7 @@ pub fn typed_attribute_list(
             &match a.multiplicity {
                 Multiplicity::Once => base_type,
                 Multiplicity::Optional => format!("{} | null", &base_type),
-                Multiplicity::Arbitrary | Multiplicity::MinOnce => format!("List<{}>", &base_type),
+                Multiplicity::Arbitrary | Multiplicity::MinOnce => format!("Array<{}>", &base_type),
             }
         }));
         Ok(attrs)
