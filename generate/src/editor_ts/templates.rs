@@ -20,7 +20,7 @@ export * from './renderer'
 "#;
 
 pub const RENDERER_PACKAGE: &'static str = r#"{
-  "name": "{{name}}",
+  "name": "{{name}}{{name_suffix}}",
   "version": "{{version}}",
   "peerDependencies": {
 {{dependencies}}
