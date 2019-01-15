@@ -12,5 +12,8 @@ doc = true
 [dependencies]
 serlo_he_spec = { path = "../" }
 serlo_he_spec_meta = { path = "../meta" }
-serde = { version = "1.0", features = ["derive"] }
-structopt = "0.2"
+serde = { version = "^1.0", features = ["derive"] }
+structopt = "^0.2"
+handlebars = "^1.1.0"
+serde_json = "^1.0"
+lazy_static = "1.2.0"

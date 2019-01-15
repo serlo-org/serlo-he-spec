@@ -132,6 +132,7 @@ pub fn identifier_from_locator(locator: &str) -> String {
         .split("/")
         .last()
         .unwrap_or_else(|| panic!("{} is not a valid plugin locator!", locator))
+        .trim_start_matches("editor-plugin-he-")
         .chars()
         .fold((String::new(), true), |mut acc, c| {
             if c == '-' {

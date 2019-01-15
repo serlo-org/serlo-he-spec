@@ -5,10 +5,8 @@ use std::io::prelude::*;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
+mod editor_ts;
 mod files;
-mod generate;
-
-use crate::generate::{typed_attribute_list, plugin_package_imports};
 
 #[derive(StructOpt)]
 enum Args {
@@ -56,6 +54,12 @@ fn main() {
                 .iter()
                 .find(|p| p.identifier.name.ends_with(plugin_name))
                 .expect(&format!("no plugin with name {:?}!", plugin_name));
+            let files = editor_ts::editor_plugin_files(plugin).expect("generation error:");
+            for file in files {
+                println!("{:?}:", &file.path);
+                println!("{}", &file.content);
+            }
+            /*
             let identifier = identifier_from_locator(&plugin.identifier.name);
 
             let mut files = vec![
@@ -64,13 +68,22 @@ fn main() {
                     content: format!(
                         PACKAGE_JSON_PATCH!(),
                         &plugin.identifier.name,
-                        &plugin.identifier.version.to_string()
+                        &plugin.identifier.version.to_string(),
+                        &get_dependent_plugins(plugin, &spec)
+                            .iter()
+                            .map(|p| format!(
+                                r#""{}": "^{}""#,
+                                p.identifier.name, p.identifier.version
+                            ))
+                            .collect::<Vec<String>>()
+                            .join(",\n"),
                     ),
                 },
                 files::GeneratedFile {
                     path: PathBuf::from("src/index.ts"),
                     content: format!(
                         REACT_DEFINITION!(),
+                        &format!("{}State", &identifier),
                         &format!("{}Edit", &identifier),
                         "editor",
                         &format!("{}Edit", &identifier),
@@ -81,6 +94,7 @@ fn main() {
                     path: PathBuf::from("src/index.renderer.ts"),
                     content: format!(
                         REACT_DEFINITION!(),
+                        &format!("{}State", &identifier),
                         &format!("{}Renderer", &identifier),
                         "renderer",
                         &format!("{}Renderer", &identifier),
@@ -150,6 +164,7 @@ fn main() {
                     println!("{}", &file.content);
                 }
             }
+            */
         }
         Args::List {} => {
             for plugin in &spec.plugins {

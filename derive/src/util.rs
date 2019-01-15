@@ -1,28 +1,6 @@
 use proc_macro2::Span;
+pub use serlo_he_spec_meta::identifier_from_locator;
 use syn::Ident;
-
-/// generate a plugin identifier from a plugin locator
-pub fn identifier_from_locator(locator: &str) -> String {
-    locator
-        .split("/")
-        .last()
-        .unwrap_or_else(|| panic!("{} is not a valid plugin locator!", locator))
-        .chars()
-        .fold((String::new(), true), |mut acc, c| {
-            if c == '-' {
-                acc.1 = true;
-            } else {
-                if acc.1 {
-                    acc.0.push_str(&c.to_uppercase().to_string());
-                    acc.1 = false;
-                } else {
-                    acc.0.push(c);
-                }
-            }
-            acc
-        })
-        .0
-}
 
 /// generate a plugin identifier from a plugin locator
 pub fn syn_identifier_from_locator(locator: &str) -> Ident {
