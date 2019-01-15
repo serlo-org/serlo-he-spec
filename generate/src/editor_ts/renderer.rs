@@ -1,24 +1,67 @@
 //! generates the renderer package
 
 use crate::editor_ts::{
-    first_letter_to_uppper_case, templates, TYPESCRIPT_IMPORTS, TYPESCRIPT_TYPES,
+    first_letter_to_uppper_case, get_dependent_plugins, templates, TYPESCRIPT_IMPORTS,
+    TYPESCRIPT_TYPES,
 };
 use crate::files::{GeneratedFile, GenerationError};
 use handlebars::Handlebars;
 use serde_json::json;
 use serlo_he_spec::Plugins;
-use serlo_he_spec_meta::{identifier_from_locator, Plugin, Specification};
+use serlo_he_spec_meta::{identifier_from_locator, Multiplicity, Plugin, Specification};
 use std::error::Error;
 use std::path::PathBuf;
 
 pub fn generate_plugin_renderer(plugin: &Plugin) -> Result<Vec<GeneratedFile>, GenerationError> {
-    Ok(vec![index(plugin, &Plugins::whole_specification())?])
+    let spec = Plugins::whole_specification();
+    Ok(vec![
+        index(plugin, &spec)?,
+        package_json_patch(plugin, &spec)?,
+    ])
+}
+
+fn package_json_patch(
+    plugin: &Plugin,
+    spec: &Specification,
+) -> Result<GeneratedFile, GenerationError> {
+    let mut reg = Handlebars::new();
+    reg.set_strict_mode(true);
+    reg.register_escape_fn(|s| s.to_string());
+    let component_ident = identifier_from_locator(&plugin.identifier.name);
+    let content = reg
+        .render_template(
+            templates::RENDERER_PACKAGE,
+            &json!({
+                "name": plugin.identifier.name,
+                "version": plugin.identifier.version.to_string(),
+                "dependencies": get_dependent_plugins(plugin, spec)
+                    .iter()
+                    .map(|p| format!(
+                        "    \"{}\": \"^{}\"",
+                        plugin.identifier.name,
+                        &plugin.identifier.version.to_string())
+                    ).collect::<Vec<String>>()
+                    .join(",\n")
+            }),
+        )
+        .map_err(|e| GenerationError::new(e.description().to_string()))?;
+    Ok(GeneratedFile {
+        path: PathBuf::from("package_json.patch"),
+        content,
+    })
 }
 
 fn state_attributes(plugin: &Plugin, spec: &Specification) -> Result<Vec<String>, GenerationError> {
     plugin.attributes.iter().try_fold(vec![], |mut res, a| {
         match TYPESCRIPT_TYPES.get(&a.content_type) {
-            Some(t) => res.push(format!("{}: {}", a.identifier, t)),
+            Some(t) => {
+                let t = match a.multiplicity {
+                    Multiplicity::Once => t.to_string(),
+                    Multiplicity::Optional => format!("{} | null", &t),
+                    Multiplicity::Arbitrary | Multiplicity::MinOnce => format!("Array<{}>", &t),
+                };
+                res.push(format!("{}: {}", a.identifier, t))
+            }
             None => {
                 return Err(GenerationError::new(format!(
                     "no typescript type defined for \"{}\"!",
@@ -33,6 +76,7 @@ fn state_attributes(plugin: &Plugin, spec: &Specification) -> Result<Vec<String>
 fn index(plugin: &Plugin, spec: &Specification) -> Result<GeneratedFile, GenerationError> {
     let mut reg = Handlebars::new();
     reg.set_strict_mode(true);
+    reg.register_escape_fn(|s| s.to_string());
     let component_ident = identifier_from_locator(&plugin.identifier.name);
     let content = reg
         .render_template(

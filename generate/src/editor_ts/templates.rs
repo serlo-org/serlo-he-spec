@@ -18,3 +18,11 @@ export interface {{component_ident}}PluginState {
 
 export * from './renderer'
 "#;
+
+pub const RENDERER_PACKAGE: &'static str = r#"{
+  "name": "{{name}}",
+  "version": "{{version}}",
+  "peerDependencies": {
+{{dependencies}}
+  }
+}"#;

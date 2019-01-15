@@ -3,7 +3,7 @@
 use crate::files::{GeneratedFile, GenerationError};
 use lazy_static::lazy_static;
 use serlo_he_spec::Plugins;
-use serlo_he_spec_meta::{identifier_from_locator, Plugin};
+use serlo_he_spec_meta::{identifier_from_locator, Plugin, Specification};
 use std::collections::HashMap;
 
 mod renderer;
@@ -50,4 +50,23 @@ pub fn first_letter_to_uppper_case(s1: &str) -> String {
         None => String::new(),
         Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
     }
+}
+
+/// find a plugin specification by its type identifier, like "Heading".
+pub fn find_plugin_by_typename<'p>(name: &str, spec: &'p Specification) -> Option<&'p Plugin> {
+    spec.plugins
+        .iter()
+        .find(|plugin| identifier_from_locator(&plugin.identifier.name) == name)
+}
+
+/// Get the plugins this plugin directly depends on through its attributes' `content_type`.
+pub fn get_dependent_plugins<'s>(plugin: &Plugin, spec: &'s Specification) -> Vec<&'s Plugin> {
+    plugin
+        .attributes
+        .iter()
+        .filter_map(|a| match find_plugin_by_typename(&a.content_type, &spec) {
+            Some(plugin) => (Some(plugin)),
+            None => None,
+        })
+        .collect()
 }
