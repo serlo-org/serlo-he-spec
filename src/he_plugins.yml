@@ -1,10 +1,10 @@
-editor_types: {}
 plugins:
   - identifier:
       name: "@serlo-org/editor-plugin-he-heading"
       version: "0.1.0"
     categories: [Structure]
-    description: Simple Heading
+    description: Headings are the most important means of structuring an article.
+    name: Heading
     documentation: |
         Headings give an article its structure. They make up a hierarchy where
         more general headings are on top with more specific sub-headings under them.
@@ -28,7 +28,8 @@ plugins:
       name: "@serlo-org/editor-plugin-he-markdown"
       version: "0.1.0"
     categories: []
-    description: Formatted Text
+    description: The default plugin for article text.
+    name: Formatted Text
     documentation: |
         Simple unicode text without special markup. 
         Markdown features like Headings, Tables, etc. are **not** allowed! Instead,
@@ -38,13 +39,14 @@ plugins:
         multiplicity: Once
         constraints: []
         content_type: MarkdownString
+
   - identifier:
       name: "@serlo-org/editor-plugin-he-title"
       version: "0.1.0"
     categories: []
-    description: Title
+    name: Title
+    description: Title of a heading, exercise or semantic box. 
     documentation: |
-        Title of a heading, exercise or semantic box. 
         Titles may only contain the following markup:
             * plain utf-8 text.
             * LaTeX math.

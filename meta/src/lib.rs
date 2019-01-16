@@ -2,14 +2,10 @@
 
 use semver::Version;
 use serde_derive::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// The specification object.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Specification {
-    /// maps content types to their javascript types.
-    pub editor_types: HashMap<String, String>,
-
     /// specification for the plugins.
     pub plugins: Vec<Plugin>,
 }
@@ -46,7 +42,7 @@ pub enum Multiplicity {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Identifier {
     /// Plugin resource identifier. Must end with a human-readable plugin identifier,
-    /// preferably in snake_case.
+    /// preferably in kebab-case.
     pub name: String,
     /// Version of the plugin (specification) according to Semantic Versioning.
     #[serde(with = "serde_semver")]
@@ -62,6 +58,8 @@ pub struct Plugin {
     pub categories: Vec<Category>,
     /// A *short* description of the plugin in CommonMark.
     pub description: String,
+    /// A short human readable plugin name. May contain spaces.
+    pub name: String,
     /// A (possibly) longer documentation of plugin purpose and usage in CommonMark.
     pub documentation: String,
     /// Plugin attributes.
