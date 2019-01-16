@@ -15,12 +15,16 @@ mod renderer;
 mod templates;
 
 lazy_static! {
+    pub static ref PLUGIN_SPEC: Specification = Plugins::whole_specification();
+}
+
+lazy_static! {
     pub static ref TYPESCRIPT_TYPES: HashMap<String, String> = {
         let mut m = HashMap::new();
         m.insert("Plugins".into(), "Editable".into());
         m.insert("MarkdownString".into(), "string".into());
         m.insert("TitleString".into(), "string".into());
-        for plugin in Plugins::whole_specification().plugins {
+        for plugin in &PLUGIN_SPEC.plugins {
             let ident = identifier_from_locator(&plugin.identifier.name);
             let ident = first_letter_to_uppper_case(&ident);
             m.insert(ident.to_string(), format!("{}PluginState", &ident));
@@ -36,10 +40,10 @@ lazy_static! {
             "Editable".into(),
             "@splish-me/editor-core/lib/editable.component".into(),
         );
-        for plugin in Plugins::whole_specification().plugins {
+        for plugin in &PLUGIN_SPEC.plugins {
             let ident = identifier_from_locator(&plugin.identifier.name);
             let ident = first_letter_to_uppper_case(&ident);
-            m.insert(format!("{}PluginState", &ident), plugin.identifier.name);
+            m.insert(format!("{}PluginState", &ident), plugin.identifier.name.to_string());
         }
         m
     };
@@ -75,18 +79,18 @@ pub fn first_letter_to_uppper_case(s1: &str) -> String {
 }
 
 /// find a plugin specification by its type identifier, like "Heading".
-pub fn find_plugin_by_typename<'p>(name: &str, spec: &'p Specification) -> Option<&'p Plugin> {
-    spec.plugins
+pub fn find_plugin_by_typename(name: &str) -> Option<&Plugin> {
+    PLUGIN_SPEC.plugins
         .iter()
         .find(|plugin| identifier_from_locator(&plugin.identifier.name) == name)
 }
 
 /// Get the plugins this plugin directly depends on through its attributes' `content_type`.
-pub fn get_dependent_plugins<'s>(plugin: &Plugin, spec: &'s Specification) -> Vec<&'s Plugin> {
+pub fn get_dependent_plugins(plugin: &Plugin) -> Vec<&Plugin> {
     plugin
         .attributes
         .iter()
-        .filter_map(|a| match find_plugin_by_typename(&a.content_type, &spec) {
+        .filter_map(|a| match find_plugin_by_typename(&a.content_type) {
             Some(plugin) => (Some(plugin)),
             None => None,
         })
@@ -96,13 +100,11 @@ pub fn get_dependent_plugins<'s>(plugin: &Plugin, spec: &'s Specification) -> Ve
 /// generate a patch to transform the template package.json
 pub fn package_json_patch(
     plugin: &Plugin,
-    spec: &Specification,
     renderer: bool,
 ) -> Result<GeneratedFile, GenerationError> {
     let mut reg = Handlebars::new();
     reg.set_strict_mode(true);
     reg.register_escape_fn(|s| s.to_string());
-    let component_ident = identifier_from_locator(&plugin.identifier.name);
     let content = reg
         .render_template(
             templates::RENDERER_PACKAGE,
@@ -110,7 +112,7 @@ pub fn package_json_patch(
                 "name": plugin.identifier.name,
                 "name_suffix": if renderer { "-renderer" } else { "" },
                 "version": plugin.identifier.version.to_string(),
-                "dependencies": (if renderer { vec![] } else { vec![plugin] }).iter().chain(get_dependent_plugins(plugin, spec)
+                "dependencies": (if renderer { vec![] } else { vec![plugin] }).iter().chain(get_dependent_plugins(plugin)
                     .iter())
                     .map(|p| format!(
                         "    \"{}-renderer\": \"^{}\"",

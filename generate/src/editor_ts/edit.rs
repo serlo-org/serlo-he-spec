@@ -1,26 +1,21 @@
 //! generates the edit package.
 
-use crate::editor_ts::{
-    first_letter_to_uppper_case, get_dependent_plugins, templates, TYPESCRIPT_IMPORTS,
-    TYPESCRIPT_TYPES, package_json_patch
-};
+use crate::editor_ts::{templates, package_json_patch};
 use crate::files::{GeneratedFile, GenerationError};
 use handlebars::Handlebars;
 use serde_json::json;
-use serlo_he_spec::Plugins;
-use serlo_he_spec_meta::{identifier_from_locator, Multiplicity, Plugin, Specification};
+use serlo_he_spec_meta::{identifier_from_locator, Plugin};
 use std::path::PathBuf;
 use std::error::Error;
 
 pub fn generate_plugin(plugin: &Plugin) -> Result<Vec<GeneratedFile>, GenerationError> {
-    let spec = Plugins::whole_specification();
     Ok(vec![
-        package_json_patch(plugin, &spec, false)?,
-        index(plugin, &spec)?
+        package_json_patch(plugin, false)?,
+        index(plugin)?
     ])
 }
 
-fn index(plugin: &Plugin, spec: &Specification) -> Result<GeneratedFile, GenerationError> {
+fn index(plugin: &Plugin) -> Result<GeneratedFile, GenerationError> {
     let mut reg = Handlebars::new();
     reg.set_strict_mode(true);
     reg.register_escape_fn(|s| s.to_string());

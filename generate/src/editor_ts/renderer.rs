@@ -1,26 +1,24 @@
 //! generates the renderer package
 
 use crate::editor_ts::{
-    first_letter_to_uppper_case, get_dependent_plugins, templates, TYPESCRIPT_IMPORTS,
+    first_letter_to_uppper_case, templates, TYPESCRIPT_IMPORTS,
     TYPESCRIPT_TYPES, package_json_patch
 };
 use crate::files::{GeneratedFile, GenerationError};
 use handlebars::Handlebars;
 use serde_json::json;
-use serlo_he_spec::Plugins;
-use serlo_he_spec_meta::{identifier_from_locator, Multiplicity, Plugin, Specification};
+use serlo_he_spec_meta::{identifier_from_locator, Multiplicity, Plugin};
 use std::error::Error;
 use std::path::PathBuf;
 
 pub fn generate_plugin_renderer(plugin: &Plugin) -> Result<Vec<GeneratedFile>, GenerationError> {
-    let spec = Plugins::whole_specification();
     Ok(vec![
-        index(plugin, &spec)?,
-        package_json_patch(plugin, &spec, true)?,
+        index(plugin)?,
+        package_json_patch(plugin, true)?,
     ])
 }
 
-fn state_attributes(plugin: &Plugin, spec: &Specification) -> Result<Vec<String>, GenerationError> {
+fn state_attributes(plugin: &Plugin) -> Result<Vec<String>, GenerationError> {
     plugin.attributes.iter().try_fold(vec![], |mut res, a| {
         match TYPESCRIPT_TYPES.get(&a.content_type) {
             Some(t) => {
@@ -42,7 +40,7 @@ fn state_attributes(plugin: &Plugin, spec: &Specification) -> Result<Vec<String>
     })
 }
 
-fn index(plugin: &Plugin, spec: &Specification) -> Result<GeneratedFile, GenerationError> {
+fn index(plugin: &Plugin) -> Result<GeneratedFile, GenerationError> {
     let mut reg = Handlebars::new();
     reg.set_strict_mode(true);
     reg.register_escape_fn(|s| s.to_string());
@@ -51,10 +49,10 @@ fn index(plugin: &Plugin, spec: &Specification) -> Result<GeneratedFile, Generat
         .render_template(
             templates::RENDERER_INDEX,
             &json!({
-                "imports": state_type_imports(plugin, spec),
+                "imports": state_type_imports(plugin),
                 "component_ident": component_ident,
                 "plugin_ident": plugin.identifier,
-                "attributes": state_attributes(plugin, spec)?,
+                "attributes": state_attributes(plugin)?,
                 "plugin_suffix": first_letter_to_uppper_case(&component_ident)
             }),
         )
@@ -66,7 +64,7 @@ fn index(plugin: &Plugin, spec: &Specification) -> Result<GeneratedFile, Generat
 }
 
 /// A generates a list of imports for types used in the plugin state.
-pub fn state_type_imports(plugin: &Plugin, spec: &Specification) -> Vec<String> {
+pub fn state_type_imports(plugin: &Plugin) -> Vec<String> {
     plugin
         .attributes
         .iter()
