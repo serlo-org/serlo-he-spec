@@ -26,3 +26,24 @@ pub const RENDERER_PACKAGE: &'static str = r#"{
 {{dependencies}}
   }
 }"#;
+
+
+pub const EDIT_INDEX: &'static str = r#"
+import {
+  {{component_ident}}PluginState,
+  {{component_ident}}Renderer
+} from '{{plugin_path}}-renderer'
+
+import { {{component_ident}}Editor } from './editor'
+
+export const foobarPlugin = {
+  name: '{{plugin_path}}',
+  version: '{{plugin_version}}',
+  Component: {{component_ident}}Editor,
+  text: '{{component_description}}',
+
+  createInitialState: (): {{component_ident}}PluginState => {
+    return {{component_default}}
+  }
+}
+"#;
