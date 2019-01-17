@@ -1,4 +1,4 @@
-pub const RENDERER_INDEX: &'static str = r#"
+pub const RENDERER_INDEX: &str = r#"
 {{~ #each imports}}
 {{this}}
 {{~ /each}}
@@ -19,7 +19,7 @@ export interface {{component_ident}}PluginState {
 export * from './renderer'
 "#;
 
-pub const RENDERER_PACKAGE: &'static str = r#"{
+pub const RENDERER_PACKAGE: &str = r#"{
   "name": "{{name}}{{name_suffix}}",
   "version": "{{version}}",
   "peerDependencies": {
@@ -27,8 +27,7 @@ pub const RENDERER_PACKAGE: &'static str = r#"{
   }
 }"#;
 
-
-pub const EDIT_INDEX: &'static str = r#"
+pub const EDIT_INDEX: &str = r#"
 import {
   {{component_ident}}PluginState,
   {{component_ident}}Renderer

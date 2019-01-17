@@ -8,30 +8,31 @@ pub use crate::plugins::*;
 mod test {
     #[cfg(feature = "mfnf")]
     use crate::mfnf::*;
-    use crate::{*};
+    use crate::*;
     #[cfg(feature = "mfnf")]
     use std::fs;
     use uuid::Uuid;
 
-    fn example_heading_doc() -> Plugins {
+    fn example_heading_doc() -> HEPluginInstance<Plugins> {
         Plugins::Heading(Heading {
             id: Uuid::new_v4(),
             caption: Title {
                 id: Uuid::new_v4(),
                 content: "Hello World".into(),
-            },
+            }
+            .into(),
             content: vec![Plugins::Heading(Heading {
                 id: Uuid::new_v4(),
                 caption: Title {
                     id: Uuid::new_v4(),
                     content: "Subheading".into(),
-                },
+                }.into(),
                 content: vec![Plugins::Markdown(Markdown {
                     id: Uuid::new_v4(),
                     content: "Document content".into(),
-                })],
-            })],
-        })
+                }).into()],
+            }).into()],
+        }).into()
     }
     #[test]
     fn serialize_heading() {
@@ -43,7 +44,7 @@ mod test {
     #[test]
     fn serde_heading() {
         let doc = serde_json::to_string(&example_heading_doc()).expect("serialization failed");
-        let tree: Plugins = serde_json::from_str(&doc).expect("could not deserialize");
+        let tree: HEPluginInstance<Plugins> = serde_json::from_str(&doc).expect("could not deserialize");
         eprintln!(
             "{}",
             &serde_json::to_string_pretty(&tree).expect("could not serialize!")
@@ -51,21 +52,61 @@ mod test {
     }
 
     #[test]
-    fn deserialize_single_plugin() {
+    fn deserialize_single_markdown() {
         let doc = r#"{
           "id": "a6f91bdc-403f-49d3-831d-5c0d09bfc28f",
           "cells": [
             {
               "id": "a6f91bdc-403f-49d3-831d-5c0d09bfc28f",
               "content": {
-                "plugin": { "name": "he.serlo.org/markdown", "version": "0.0.0" },
+                "plugin": { "name": "@serlo-org/editor-plugin-he-markdown", "version": "0.1.0" },
                 "state": { "content": "Test" }
               },
               "rows": null
             }
           ]
         }"#;
-        let _: Markdown = serde_json::from_str(&doc).unwrap();
+        let _: HEPluginInstance<Markdown> = serde_json::from_str(&doc).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn deserialize_wrong_plugin() {
+        // state is in fact a markdown plugin -> should panic
+        let doc = r#"{
+          "id": "a6f91bdc-403f-49d3-831d-5c0d09bfc28f",
+          "cells": [
+            {
+              "id": "a6f91bdc-403f-49d3-831d-5c0d09bfc28f",
+              "content": {
+                "plugin": { "name": "@serlo-org/editor-plugin-he-title", "version": "0.0.0" },
+                "state": { "content": "Test" }
+              },
+              "rows": null
+            }
+          ]
+        }"#;
+        let _: HEPluginInstance<Markdown> = serde_json::from_str(&doc).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn deserialize_incompatible_version() {
+        // state is in fact a markdown plugin -> should panic
+        let doc = r#"{
+          "id": "a6f91bdc-403f-49d3-831d-5c0d09bfc28f",
+          "cells": [
+            {
+              "id": "a6f91bdc-403f-49d3-831d-5c0d09bfc28f",
+              "content": {
+                "plugin": { "name": "@serlo-org/editor-plugin-he-title", "version": "10000.0.0" },
+                "state": { "content": "Test" }
+              },
+              "rows": null
+            }
+          ]
+        }"#;
+        let _: HEPluginInstance<Title> = serde_json::from_str(&doc).unwrap();
     }
 
     #[test]

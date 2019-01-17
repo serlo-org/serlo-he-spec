@@ -43,7 +43,10 @@ lazy_static! {
         for plugin in &PLUGIN_SPEC.plugins {
             let ident = identifier_from_locator(&plugin.identifier.name);
             let ident = first_letter_to_uppper_case(&ident);
-            m.insert(format!("{}PluginState", &ident), plugin.identifier.name.to_string());
+            m.insert(
+                format!("{}PluginState", &ident),
+                plugin.identifier.name.to_string(),
+            );
         }
         m
     };
@@ -53,7 +56,7 @@ pub fn editor_plugin_files(plugin: &Plugin) -> Result<Vec<GeneratedFile>, Genera
     let dashed_name = plugin
         .identifier
         .name
-        .split("/")
+        .split('/')
         .last()
         .unwrap_or_else(|| panic!(format!("invalid plugin name: {}!", plugin.identifier.name)))
         .trim_right_matches("editor-plugin-he-");
@@ -80,7 +83,8 @@ pub fn first_letter_to_uppper_case(s1: &str) -> String {
 
 /// find a plugin specification by its type identifier, like "Heading".
 pub fn find_plugin_by_typename(name: &str) -> Option<&Plugin> {
-    PLUGIN_SPEC.plugins
+    PLUGIN_SPEC
+        .plugins
         .iter()
         .find(|plugin| identifier_from_locator(&plugin.identifier.name) == name)
 }

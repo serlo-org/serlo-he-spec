@@ -48,7 +48,7 @@ fn main() {
                 .plugins
                 .iter()
                 .find(|p| p.identifier.name.ends_with(plugin_name))
-                .expect(&format!("no plugin with name {:?}!", plugin_name));
+                .unwrap_or_else(|| panic!("no plugin with name {:?}!", plugin_name));
             let mut files = editor_ts::editor_plugin_files(plugin).expect("generation error:");
 
             for mut file in &mut files {
@@ -60,7 +60,7 @@ fn main() {
                     let base_dir = PathBuf::from(&file.path.parent().unwrap());
                     fs::create_dir_all(&base_dir).expect("could not create output directory!");
                     let mut f = fs::File::create(&file.path)
-                        .expect(&format!("could not create {:?}", &file.path));
+                        .unwrap_or_else(|_| panic!("could not create {:?}", &file.path));
                     write!(&mut f, "{}", &file.content).expect("could not write to output!");
                 }
             } else {

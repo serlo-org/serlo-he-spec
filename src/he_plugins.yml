@@ -18,11 +18,11 @@ plugins:
       - identifier: caption
         multiplicity: Once
         constraints: []
-        content_type: Title
+        content_type: HEPluginInstance<Title>
       - identifier: content
         multiplicity: Arbitrary
         constraints: []
-        content_type: Plugins
+        content_type: HEPluginInstance<Plugins>
 
   - identifier:
       name: "@serlo-org/editor-plugin-he-markdown"
