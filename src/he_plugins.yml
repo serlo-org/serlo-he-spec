@@ -1,6 +1,6 @@
 plugins:
   - identifier:
-      name: "@serlo-org/editor-plugin-he-heading"
+      name: "@serlo/editor-plugin-he-heading"
       version: "0.1.0"
     categories: [Structure]
     description: Headings are the most important means of structuring an article.
@@ -18,14 +18,14 @@ plugins:
       - identifier: caption
         multiplicity: Once
         constraints: []
-        content_type: HEPluginInstance<Title>
+        content_type: HEPluginInstance<HeTitle>
       - identifier: content
         multiplicity: Arbitrary
         constraints: []
         content_type: HEPluginInstance<Plugins>
 
   - identifier:
-      name: "@serlo-org/editor-plugin-he-markdown"
+      name: "@serlo/editor-plugin-he-markdown"
       version: "0.1.0"
     categories: []
     description: The default plugin for article text.
@@ -41,7 +41,7 @@ plugins:
         content_type: MarkdownString
 
   - identifier:
-      name: "@serlo-org/editor-plugin-he-title"
+      name: "@serlo/editor-plugin-he-title"
       version: "0.1.0"
     categories: []
     name: Title
