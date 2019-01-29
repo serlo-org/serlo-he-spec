@@ -20,9 +20,13 @@ pub fn impl_serde(plugins: &[Plugin]) -> TokenStream {
             pub cells: [EditorCell<T>; 1],
         }
 
+        fn editable_document_type() -> &'static str {
+            "@splish-me/editor-core/editable"
+        }
+
         #[derive(Serialize, Deserialize)]
         struct SerializedDocument<T> {
-            #[serde(rename="type")]
+            #[serde(rename="type", default="editable_document_type", skip_deserializing)]
             pub doc_type: &'static str,
             pub state: T
         }
@@ -30,9 +34,15 @@ pub fn impl_serde(plugins: &[Plugin]) -> TokenStream {
         impl<T> From<T> for SerializedDocument<T> {
             fn from(state: T) -> Self {
                 SerializedDocument {
-                    doc_type: "@splish-me/editor-core/editable",
+                    doc_type: editable_document_type(),
                     state,
                 }
+            }
+        }
+
+        impl<T> From<SerializedDocument<ShadowInstance<T>>> for ShadowInstance<T> {
+            fn from(doc: SerializedDocument<ShadowInstance<T>>) -> Self {
+                doc.state
             }
         }
 
@@ -71,9 +81,11 @@ pub fn impl_serde(plugins: &[Plugin]) -> TokenStream {
             where
                 D: Deserializer<'de>,
             {
-                match ShadowInstance::<#identifiers2>::deserialize(deserializer) {
+                type ShadowType = ShadowInstance<#identifiers2>;
+                match SerializedDocument::<ShadowType>::deserialize(deserializer) {
                     Ok(mut result) => {
                         let ident = #identifiers3::identifier();
+                        let result: ShadowType = result.into();
                         Ok(result.into_instance(&ident).map_err(de::Error::custom)?)
                     },
                     Err(err) => Err(err)
@@ -109,8 +121,11 @@ pub fn impl_serde(plugins: &[Plugin]) -> TokenStream {
             where
                 D: Deserializer<'de>,
             {
-                match ShadowInstance::<Plugins>::deserialize(deserializer) {
+                type ShadowType = ShadowInstance<Plugins>;
+
+                match SerializedDocument::<ShadowType>::deserialize(deserializer) {
                     Ok(mut result) => {
+                        let result: ShadowType = result.into();
                         let ident = result.cells[0].content.state.identifier();
                         Ok(result.into_instance(&ident).map_err(de::Error::custom)?)
                     },
