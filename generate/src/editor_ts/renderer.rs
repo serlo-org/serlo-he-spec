@@ -1,8 +1,8 @@
 //! generates the renderer package
 
 use crate::editor_ts::{
-    first_letter_to_uppper_case, templates, TYPESCRIPT_IMPORTS,
-    TYPESCRIPT_TYPES, package_json_patch
+    first_letter_to_lowercase, package_json_patch, plugin_name_suffx, templates,
+    TYPESCRIPT_IMPORTS, TYPESCRIPT_TYPES,
 };
 use crate::files::{GeneratedFile, GenerationError};
 use handlebars::Handlebars;
@@ -12,10 +12,7 @@ use std::error::Error;
 use std::path::PathBuf;
 
 pub fn generate_plugin_renderer(plugin: &Plugin) -> Result<Vec<GeneratedFile>, GenerationError> {
-    Ok(vec![
-        index(plugin)?,
-        package_json_patch(plugin, true)?,
-    ])
+    Ok(vec![index(plugin)?, package_json_patch(plugin, true)?])
 }
 
 fn state_attributes(plugin: &Plugin) -> Result<Vec<String>, GenerationError> {
@@ -33,7 +30,7 @@ fn state_attributes(plugin: &Plugin) -> Result<Vec<String>, GenerationError> {
                 return Err(GenerationError::new(format!(
                     "no typescript type defined for \"{}\"!",
                     &a.content_type
-                )))
+                )));
             }
         };
         Ok(res)
@@ -51,9 +48,9 @@ fn index(plugin: &Plugin) -> Result<GeneratedFile, GenerationError> {
             &json!({
                 "imports": state_type_imports(plugin),
                 "component_ident": component_ident,
-                "plugin_ident": plugin.identifier,
                 "attributes": state_attributes(plugin)?,
-                "plugin_suffix": first_letter_to_uppper_case(&component_ident)
+                "plugin_suffix": first_letter_to_lowercase(&component_ident),
+                "plugin_dashed": plugin_name_suffx(plugin)
             }),
         )
         .map_err(|e| GenerationError::new(e.description().to_string()))?;
@@ -65,7 +62,7 @@ fn index(plugin: &Plugin) -> Result<GeneratedFile, GenerationError> {
 
 /// A generates a list of imports for types used in the plugin state.
 pub fn state_type_imports(plugin: &Plugin) -> Vec<String> {
-    plugin
+    let mut imports: Vec<String> = plugin
         .attributes
         .iter()
         .map(|a| {
@@ -78,5 +75,8 @@ pub fn state_type_imports(plugin: &Plugin) -> Vec<String> {
                 .get(t)
                 .map(|p| format!("import {{ {} }} from '{}'", t, &p))
         })
-        .collect()
+        .collect();
+    imports.sort();
+    imports.dedup();
+    imports
 }

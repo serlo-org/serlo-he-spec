@@ -4,7 +4,7 @@ use crate::files::{GeneratedFile, GenerationError};
 use handlebars::Handlebars;
 use lazy_static::lazy_static;
 use serde_json::json;
-use serlo_he_spec::Plugins;
+use serlo_he_spec::{MarkdownText, Plugins, TitleText};
 use serlo_he_spec_meta::{identifier_from_locator, Plugin, Specification};
 use std::collections::HashMap;
 use std::error::Error;
@@ -21,13 +21,18 @@ lazy_static! {
 lazy_static! {
     pub static ref TYPESCRIPT_TYPES: HashMap<String, String> = {
         let mut m = HashMap::new();
-        m.insert("Plugins".into(), "Editable".into());
-        m.insert("MarkdownString".into(), "string".into());
-        m.insert("TitleString".into(), "string".into());
+        m.insert(
+            "HEPluginInstance<Plugins>".into(),
+            "DocumentIdentifier".into(),
+        );
+        m.insert("MarkdownText".into(), "string".into());
+        m.insert("TitleText".into(), "string".into());
         for plugin in &PLUGIN_SPEC.plugins {
             let ident = identifier_from_locator(&plugin.identifier.name);
-            let ident = first_letter_to_uppper_case(&ident);
-            m.insert(ident.to_string(), format!("{}PluginState", &ident));
+            m.insert(
+                format!("HEPluginInstance<{}>", &ident),
+                format!("DocumentIdentifier"),
+            );
         }
         m
     };
@@ -36,18 +41,40 @@ lazy_static! {
 lazy_static! {
     pub static ref TYPESCRIPT_IMPORTS: HashMap<String, String> = {
         let mut m = HashMap::new();
+        m.insert("DocumentIdentifier".into(), "@splish-me/editor".into());
+        for plugin in &PLUGIN_SPEC.plugins {
+            let ident = identifier_from_locator(&plugin.identifier.name);
+            m.insert(
+                format!("{}PluginState", &ident),
+                format!("{}-renderer", plugin.identifier.name.to_string()),
+            );
+        }
+        m
+    };
+}
+
+lazy_static! {
+    pub static ref STATE_DEFAULTS: HashMap<String, String> = {
+        let mut m = HashMap::new();
         m.insert(
-            "Editable".into(),
-            "@splish-me/editor-core/lib/editable.component".into(),
+            "HEPluginInstance<Plugins>".into(),
+            "createDocumentIdentifier()".into(),
         );
         for plugin in &PLUGIN_SPEC.plugins {
             let ident = identifier_from_locator(&plugin.identifier.name);
-            let ident = first_letter_to_uppper_case(&ident);
             m.insert(
-                format!("{}PluginState", &ident),
-                plugin.identifier.name.to_string(),
+                format!("HEPluginInstance<{}>", &ident),
+                format!("createDocumentIdentifier()"),
             );
         }
+        m.insert(
+            "MarkdownText".to_string(),
+            serde_json::to_string(&MarkdownText::default()).unwrap(),
+        );
+        m.insert(
+            "TitleText".to_string(),
+            serde_json::to_string(&TitleText::default()).unwrap(),
+        );
         m
     };
 }
@@ -58,8 +85,8 @@ pub fn editor_plugin_files(plugin: &Plugin) -> Result<Vec<GeneratedFile>, Genera
         .name
         .split('/')
         .last()
-        .unwrap_or_else(|| panic!(format!("invalid plugin name: {}!", plugin.identifier.name)))
-        .trim_right_matches("editor-plugin-he-");
+        .unwrap_or_else(|| panic!("invalid plugin name: {}!", plugin.identifier.name))
+        .trim_left_matches("editor-plugin-");
 
     let mut result = vec![];
     for mut file in edit::generate_plugin(plugin)?.drain(..) {
@@ -73,20 +100,32 @@ pub fn editor_plugin_files(plugin: &Plugin) -> Result<Vec<GeneratedFile>, Genera
     Ok(result)
 }
 
-pub fn first_letter_to_uppper_case(s1: &str) -> String {
+pub fn first_letter_to_lowercase(s1: &str) -> String {
     let mut c = s1.chars();
     match c.next() {
         None => String::new(),
-        Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+        Some(f) => f.to_lowercase().collect::<String>() + c.as_str(),
     }
 }
 
 /// find a plugin specification by its type identifier, like "Heading".
 pub fn find_plugin_by_typename(name: &str) -> Option<&Plugin> {
-    PLUGIN_SPEC
-        .plugins
-        .iter()
-        .find(|plugin| identifier_from_locator(&plugin.identifier.name) == name)
+    PLUGIN_SPEC.plugins.iter().find(|plugin| {
+        let ident = identifier_from_locator(&plugin.identifier.name);
+        ident == name || format!("HEPluginInstance<{}>", &ident) == name
+    })
+}
+
+/// Returns the name of a the plugin with preceding noise stripped.
+pub fn plugin_name_suffx(plugin: &Plugin) -> String {
+    plugin
+        .identifier
+        .name
+        .split('/')
+        .last()
+        .unwrap_or_else(|| panic!("invalid plugin name: {}!", plugin.identifier.name))
+        .trim_left_matches("editor-plugin-")
+        .to_string()
 }
 
 /// Get the plugins this plugin directly depends on through its attributes' `content_type`.
