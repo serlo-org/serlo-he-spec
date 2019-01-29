@@ -38,7 +38,7 @@ plugins:
       - identifier: content
         multiplicity: Once
         constraints: []
-        content_type: MarkdownString
+        content_type: MarkdownText
 
   - identifier:
       name: "@serlo/editor-plugin-he-title"
@@ -56,4 +56,4 @@ plugins:
       - identifier: content
         multiplicity: Once
         constraints: []
-        content_type: TitleString
+        content_type: TitleText
