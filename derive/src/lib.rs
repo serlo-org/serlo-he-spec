@@ -18,7 +18,7 @@ use serlo_he_spec_meta::{Attribute, Multiplicity, Plugin, Specification};
 mod serde;
 mod util;
 
-use crate::util::{syn_identifier_from_locator};
+use crate::util::syn_identifier_from_locator;
 
 #[proc_macro]
 pub fn plugin_spec(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -40,8 +40,8 @@ pub fn plugin_spec(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
 fn impl_attribute(attribute: &Attribute) -> TokenStream {
     let ident = Ident::new(&attribute.identifier, Span::call_site());
-    let content_type: TypePath = syn::parse_str(&attribute.content_type)
-        .expect("could not parse attribute type:");
+    let content_type: TypePath =
+        syn::parse_str(&attribute.content_type).expect("could not parse attribute type:");
 
     let attr_type = match attribute.multiplicity {
         Multiplicity::Optional => quote! {
@@ -70,6 +70,10 @@ fn impl_plugins_enum(spec: &Specification) -> TokenStream {
         .collect::<Vec<Ident>>();
     let identifiers = &identifier_vec;
     let identifiers2 = &identifier_vec;
+    let names = spec
+        .plugins
+        .iter()
+        .map(|p| LitStr::new(&p.identifier.name, Span::call_site()));
     let descriptions = spec
         .plugins
         .iter()
@@ -111,7 +115,7 @@ fn impl_plugins_enum(spec: &Specification) -> TokenStream {
                 .unwrap_or_else(|_| unreachable!())
         }
 
-        #[derive(Debug, Clone, PartialEq, Serialize)]
+        #[derive(Debug, Clone, PartialEq)]
         /// Represents a editor plugin instance, only used during ser/de.
         pub struct HEPluginInstance<T> {
             id: Uuid,
@@ -192,6 +196,16 @@ fn impl_plugins_enum(spec: &Specification) -> TokenStream {
             /// The complete specification object for all plugins.
             pub fn whole_specification() -> serlo_he_spec_meta::Specification {
                 serde_json::from_str(#serial_spec).expect("invalid specification in code!")
+            }
+
+            /// Return the `Default` instance for a plugin by name.
+            pub fn default_for(name: &str) -> Option<Plugins> {
+                match name {
+                    #(
+                        #names => Some(Plugins::#identifiers(#identifiers2::default()))
+                    ),*,
+                    _ => None
+                }
             }
         }
 

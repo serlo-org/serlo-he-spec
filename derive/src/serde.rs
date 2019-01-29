@@ -1,4 +1,4 @@
-use crate::util::{syn_identifier_from_locator};
+use crate::util::syn_identifier_from_locator;
 use proc_macro2::TokenStream;
 use quote::quote;
 use serlo_he_spec_meta::Plugin;
@@ -18,6 +18,31 @@ pub fn impl_serde(plugins: &[Plugin]) -> TokenStream {
         struct ShadowInstance<T> {
             pub id: Uuid,
             pub cells: [EditorCell<T>; 1],
+        }
+
+        #[derive(Serialize, Deserialize)]
+        struct SerializedDocument<T> {
+            #[serde(rename="type")]
+            pub doc_type: &'static str,
+            pub state: T
+        }
+
+        impl<T> From<T> for SerializedDocument<T> {
+            fn from(state: T) -> Self {
+                SerializedDocument {
+                    doc_type: "@splish-me/editor-core/editable",
+                    state,
+                }
+            }
+        }
+
+        impl<T> From<HEPluginInstance<T>> for ShadowInstance<T> {
+            fn from(instance: HEPluginInstance<T>) -> Self {
+                ShadowInstance {
+                    id: instance.id,
+                    cells: [match instance.cells { [c] => c }]
+                }
+            }
         }
 
         impl<T> ShadowInstance<T> {
@@ -55,6 +80,29 @@ pub fn impl_serde(plugins: &[Plugin]) -> TokenStream {
                 }
             }
         })*
+
+        #(
+        impl Serialize for HEPluginInstance<#identifiers> {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: Serializer,
+            {
+                let shadow: ShadowInstance<#identifiers2> = self.clone().into();
+                let doc: SerializedDocument<_> = shadow.into();
+                doc.serialize(serializer)
+            }
+        })*
+
+        impl Serialize for HEPluginInstance<Plugins> {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: Serializer,
+            {
+                let shadow: ShadowInstance<Plugins> = self.clone().into();
+                let doc: SerializedDocument<_> = shadow.into();
+                doc.serialize(serializer)
+            }
+        }
 
         impl<'de> Deserialize<'de> for HEPluginInstance<Plugins> {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
