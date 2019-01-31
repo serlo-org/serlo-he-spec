@@ -1,7 +1,7 @@
 //! generates the renderer package
 
 use crate::editor_ts::{
-    first_letter_to_lowercase, package_json_patch, plugin_name_suffx, templates,
+    first_letter_to_lowercase, package_json_patch, plugin_name_suffx, readme, templates,
     TYPESCRIPT_IMPORTS, TYPESCRIPT_TYPES,
 };
 use crate::files::{GeneratedFile, GenerationError};
@@ -12,7 +12,11 @@ use std::error::Error;
 use std::path::PathBuf;
 
 pub fn generate_plugin_renderer(plugin: &Plugin) -> Result<Vec<GeneratedFile>, GenerationError> {
-    Ok(vec![index(plugin)?, package_json_patch(plugin, true)?])
+    Ok(vec![
+        index(plugin)?,
+        package_json_patch(plugin, true)?,
+        readme(plugin)?,
+    ])
 }
 
 fn state_attributes(plugin: &Plugin) -> Result<Vec<String>, GenerationError> {

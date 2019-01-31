@@ -1,7 +1,8 @@
 //! generates the edit package.
 
 use crate::editor_ts::{
-    first_letter_to_lowercase, package_json_patch, plugin_name_suffx, templates, STATE_DEFAULTS,
+    first_letter_to_lowercase, package_json_patch, plugin_name_suffx, readme, templates,
+    STATE_DEFAULTS,
 };
 use crate::files::{GeneratedFile, GenerationError};
 use handlebars::Handlebars;
@@ -11,7 +12,11 @@ use std::error::Error;
 use std::path::PathBuf;
 
 pub fn generate_plugin(plugin: &Plugin) -> Result<Vec<GeneratedFile>, GenerationError> {
-    Ok(vec![package_json_patch(plugin, false)?, index(plugin)?])
+    Ok(vec![
+        package_json_patch(plugin, false)?,
+        index(plugin)?,
+        readme(plugin)?,
+    ])
 }
 
 fn default_state(plugin: &Plugin) -> Result<String, GenerationError> {
